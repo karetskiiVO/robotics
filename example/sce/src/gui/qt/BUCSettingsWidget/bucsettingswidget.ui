@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BUCSettingsWidget</class>
+ <widget class="QWidget" name="BUCSettingsWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="maxPowerLabel">
+     <property name="text">
+      <string>Max power (dBm)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="loLabel">
+     <property name="text">
+      <string>Local Oscillator (Hz)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="gainLabel">
+     <property name="text">
+      <string>Gain (dB)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLongSpinBox" name="gain" native="true"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLongSpinBox" name="transferFrequency" native="true"/>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLongSpinBox" name="maxPower" native="true"/>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QLongSpinBox</class>
+   <extends>QWidget</extends>
+   <header>qlongspinbox.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

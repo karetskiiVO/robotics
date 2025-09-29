@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ModulatorSettingsWidget</class>
+ <widget class="SettingsWidget" name="ModulatorSettingsWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="clockFrequencyLabel">
+     <property name="text">
+      <string>Clock frequency (Hz)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="carrierFrequencyLabel">
+     <property name="text">
+      <string>Carrier frequency (Hz)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLongSpinBox" name="clock_frequency" native="true"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLongSpinBox" name="carrier_frequency" native="true"/>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SettingsWidget</class>
+   <extends>QWidget</extends>
+   <header>settingswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QLongSpinBox</class>
+   <extends>QWidget</extends>
+   <header>qlongspinbox.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

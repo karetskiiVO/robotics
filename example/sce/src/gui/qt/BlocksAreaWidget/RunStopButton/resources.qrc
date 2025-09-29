@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="run-icon">icons/run.svg</file>
+        <file alias="stop-icon">icons/stop.svg</file>
+    </qresource>
+</RCC>

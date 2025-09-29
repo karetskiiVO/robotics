@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="satellite">icons/radio.svg</file>
+        <file alias="list">icons/list.svg</file>
+        <file alias="menu">icons/menu.svg</file>
+        <file alias="help">icons/help-circle.svg</file>
+        <file alias="plus">icons/plus.svg</file>
+    </qresource>
+</RCC>

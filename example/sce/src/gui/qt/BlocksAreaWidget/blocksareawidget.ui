@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BlocksAreaWidget</class>
+ <widget class="QTabWidget" name="BlocksAreaWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>BlocksAreaWidget</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <property name="currentIndex">
+   <number>0</number>
+  </property>
+  <widget class="BaseBlockWidget" name="input">
+   <attribute name="title">
+    <string>Input</string>
+   </attribute>
+  </widget>
+  <widget class="BaseBlockWidget" name="modulator">
+   <attribute name="title">
+    <string>Modulator</string>
+   </attribute>
+  </widget>
+  <widget class="BaseBlockWidget" name="buc">
+   <attribute name="title">
+    <string>BUC</string>
+   </attribute>
+  </widget>
+  <widget class="BaseBlockWidget" name="uplink">
+   <attribute name="title">
+    <string>Uplink</string>
+   </attribute>
+  </widget>
+  <widget class="BaseBlockWidget" name="satellite">
+   <attribute name="title">
+    <string>Satellite</string>
+   </attribute>
+  </widget>
+  <widget class="BaseBlockWidget" name="downlink">
+   <attribute name="title">
+    <string>Downlink</string>
+   </attribute>
+  </widget>
+  <widget class="BaseBlockWidget" name="lnb">
+   <attribute name="title">
+    <string>LNB</string>
+   </attribute>
+  </widget>
+  <widget class="BaseBlockWidget" name="demodulator">
+   <attribute name="title">
+    <string>Demodulator</string>
+   </attribute>
+  </widget>
+  <widget class="BaseBlockWidget" name="output">
+   <attribute name="title">
+    <string>Output</string>
+   </attribute>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>BaseBlockWidget</class>
+   <extends>QWidget</extends>
+   <header>baseblockwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
