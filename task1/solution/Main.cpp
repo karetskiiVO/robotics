@@ -1,6 +1,3 @@
-#include <iostream>
-#include <format>
-
 #include <Robot.h>
 
 #include "Main.h"
@@ -8,11 +5,11 @@
 int main(int argc, char **argv) {
 	(void)argc;
 	(void)argv;
-	Robot robot;
+	Robot *robot = new Robot();
 	
-	robot.setup();
+	robot->setup();
 	while (true) {
-		robot.loop();
+		robot->loop();
 	}
 	return 0;
 }
