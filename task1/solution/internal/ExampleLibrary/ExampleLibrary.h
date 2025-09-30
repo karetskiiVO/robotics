@@ -3,7 +3,7 @@ public:
 	ExampleLibrary() {};
 	~ExampleLibrary() {};
 
-	double exampleFunction(double arg);
+	double ExampleFunction(double arg);
 };
 
 
