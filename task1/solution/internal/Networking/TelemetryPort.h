@@ -1,6 +1,6 @@
+#pragma once
 #include <vector>
 #include <memory>
-#include <deque>
 #include "TCPServerLinux.h"
 
 class TelemetryPort {
@@ -8,16 +8,11 @@ public:
     TelemetryPort(const IpAddress &ownIp) : ip(ownIp) {
         tcp.StartServer(ip);
         tcp.Connect();
-        state = ParsingOver;
+        lidarData = std::make_unique<std::vector<float>>();
     }
 
-    enum ParserState {
-        ParsingStructData,
-        ParsingLidarData,
-        ParsingOver
-    };
-    
     struct __attribute__((packed)) TelemetryData {
+        uint32_t packetSize;
         uint32_t header;
         float odometryX;
         float odometryY;
@@ -31,17 +26,22 @@ public:
         uint32_t lidarDataSize;
     };
 
-    bool Loop();
+    void Loop() {
+        (void)tcp.receiveData(reinterpret_cast<char*>(&data), sizeof(data));
+        for (uint32_t i = 0; i < data.lidarDataSize; i++) {
+            float value = 0;
+            (void)tcp.receiveData(reinterpret_cast<char*>(&value), sizeof(float));
+            lidarData->push_back(value);
+        }
+    }
+
+    const struct TelemetryData &GetTelemetry() { return data; }
 
 private:
-    static inline const size_t rxBufferSize = 1024;
-    static inline const char header[4] = {0x57, 0x42, 0x54, 0x47};
     const IpAddress ip;
 
     struct TelemetryData data;
     std::unique_ptr<std::vector<float>> lidarData;
-    enum ParserState state;
 
     TCPServer tcp;
-    char rxBuffer[rxBufferSize];
 };
