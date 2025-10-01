@@ -9,7 +9,7 @@ public:
         float velocityAngular;
     };
 
-    void loop() {
+    void Loop() {
         udp.SendTo(ip, reinterpret_cast<const char*>(&data), sizeof(data));
     }
 
