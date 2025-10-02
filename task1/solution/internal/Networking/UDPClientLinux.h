@@ -3,15 +3,18 @@
 #include <netinet/in.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <memory>
 
+#include <rustcxx/rustcxx.hpp>
 #include "IpAddress.h"
+
+using namespace rust;
 
 class UDPClient {
 public:
-    UDPClient() {
-       fileDescriptor = socket(AF_INET, SOCK_DGRAM, 0); 
-    }
+    using Ptr = std::shared_ptr<UDPClient>;
 
+    UDPClient() = default;
     ~UDPClient() {
         close(fileDescriptor);
     }
@@ -19,11 +22,21 @@ public:
     UDPClient(const UDPClient &other) = delete;
     UDPClient& operator = (const UDPClient&) = delete;
 
-    void SendTo(const IpAddress &ip, const char *buffer, size_t bufferSize) {
-        struct sockaddr_in socketAddress = ip.asSockaddrStruct();
-        (void)sendto(fileDescriptor, reinterpret_cast<const void*>(buffer), bufferSize, 
-            0, reinterpret_cast<const struct sockaddr*>(&socketAddress), sizeof(socketAddress));
-    }
+    enum class ErrorCode {
+        SocketCreate,
+        NotConnected,
+        ConnectionTaken,
+        ConnectionReset,
+        Other
+    };
+
+    using Res = Result<Ptr, ErrorCode>;
+
+    static Res Dial();
+    Result<size_t, ErrorCode> SendTo(const IpAddress &ip, const char *buffer, size_t bufferSize);
+
 private:
     int fileDescriptor;
 };
+
+using UDPClientPtr = UDPClient::Ptr;

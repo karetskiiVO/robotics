@@ -1,4 +1,4 @@
-add_library(Networking OBJECT UDPClientLinux.cpp TCPServerLinux.cpp)
+add_library(Networking OBJECT TCPServerLinux.cpp UDPClientLinux.cpp ControllerPort.cpp TelemetryPort.cpp)
 
 # В эту переменную впишите зависимости этой библиотеки, см. ExampleLibrary2
 set(DEPENDENCIES "")

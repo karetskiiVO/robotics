@@ -1,15 +1,23 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <rustcxx/rustcxx.hpp>
+
 #include "TCPServerLinux.h"
+
+using namespace rust;
+
+static const uint32_t header = 1463964743;
 
 class TelemetryPort {
 public:
-    TelemetryPort(const IpAddress &ownIp) : ip(ownIp) {
-        tcp.StartServer(ip);
-        tcp.Connect();
-        lidarData = std::make_unique<std::vector<float>>();
-    }
+    using Ptr = std::shared_ptr<TelemetryPort>;
+
+    TelemetryPort() = default;
+    ~TelemetryPort() = default;
+
+    TelemetryPort(TelemetryPort& other) = delete;
+    TelemetryPort& operator = (const TelemetryPort& other) = delete;
 
     struct __attribute__((packed)) TelemetryData {
         uint32_t packetSize;
@@ -26,22 +34,27 @@ public:
         uint32_t lidarDataSize;
     };
 
-    void Loop() {
-        (void)tcp.receiveData(reinterpret_cast<char*>(&data), sizeof(data));
-        for (uint32_t i = 0; i < data.lidarDataSize; i++) {
-            float value = 0;
-            (void)tcp.receiveData(reinterpret_cast<char*>(&value), sizeof(float));
-            lidarData->push_back(value);
-        }
-    }
+    enum class ErrorCode {
+        Network,
+        Header,
+        Other
+    };
+
+    using Res = Result<Ptr, ErrorCode>;
+
+    static Res Create(const IpAddress &ip);
+    Result <const TelemetryData*, ErrorCode> Loop();
 
     const struct TelemetryData &GetTelemetry() { return data; }
 
 private:
-    const IpAddress ip;
+    IpAddress ip;
 
     struct TelemetryData data;
     std::unique_ptr<std::vector<float>> lidarData;
 
-    TCPServer tcp;
+    TCPServerPtr tcpServer;
+    TCPConnectionPtr tcp;
 };
+
+using TelemetryPortPtr = TelemetryPort::Ptr;

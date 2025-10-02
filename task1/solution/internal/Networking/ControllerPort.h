@@ -1,19 +1,32 @@
 #pragma once
+#include <memory>
+#include <rustcxx/rustcxx.hpp>
 #include "UDPClientLinux.h"
+
+using namespace rust;
 
 class ControllerPort {
 public:
-    ControllerPort(const IpAddress &dstIp) : ip(dstIp) {}
+    using Ptr = std::shared_ptr<ControllerPort>;
+
+    ControllerPort() = default;
+    ~ControllerPort() = default;
 
     struct __attribute__((packed)) ControllerData {
         float velocityLinear;
         float velocityAngular;
     };
 
-    void Loop() {
-        udp.SendTo(ip, reinterpret_cast<const char*>(&data), sizeof(data));
-    }
+    enum class ErrorCode {
+        Network,
+        ValueOutOfBounds
+    };
 
+    static Result<Ptr, ErrorCode> Create(const IpAddress &ip);
+
+    void Loop();
+
+    // TODO: Добавить проверку значений по границам
     void SetVelocityLinear(float velocity) { data.velocityLinear = velocity; }
     void SetVelocityAngular(float velocity) { data.velocityAngular = velocity; }
 
@@ -21,7 +34,9 @@ public:
     float GetVelocityAngular() const { return data.velocityAngular; } 
 
 private:
-    UDPClient udp;
+    UDPClientPtr udp;
     struct ControllerData data;
-    const IpAddress ip;
-}
+    IpAddress ip;
+};
+
+using ControllerPortPtr = ControllerPort::Ptr;
