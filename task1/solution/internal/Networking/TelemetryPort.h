@@ -43,7 +43,7 @@ public:
     using Res = Result<Ptr, ErrorCode>;
 
     static Res Create(const IpAddress &ip);
-    Result <const TelemetryData*, ErrorCode> Loop();
+    Result<const TelemetryData*, ErrorCode> Loop();
 
     const struct TelemetryData &GetTelemetry() { return data; }
 
