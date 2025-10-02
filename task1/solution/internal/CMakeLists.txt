@@ -3,7 +3,7 @@
 set(INTERNAL_LIBS
 	ExampleLibrary2
 	ExampleLibrary
-	Networking
+	net
 )
 
 foreach(dir ${INTERNAL_LIBS})
