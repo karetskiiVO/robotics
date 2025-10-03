@@ -1,0 +1,12 @@
+{
+    "Telemetry": {
+        "odom_x": value,
+        "odom_y": value,
+        ...
+        "lidar_data": [value1, value2, ...]
+    },
+    "Internal": {
+        <some other data>
+    }
+}
+
