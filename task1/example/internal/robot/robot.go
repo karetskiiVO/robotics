@@ -3,12 +3,12 @@ package robot
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"sync"
 
 	"github.com/karetskiiVO/robotics/task1/example/internal/transform"
+	"github.com/phpgao/tlog"
 )
 
 type Robot struct {
@@ -31,20 +31,20 @@ func NewRobot(ctx context.Context) (*Robot, error) {
 	r := &Robot{}
 	r.ctx, r.cancel = context.WithCancel(ctx)
 
-	log.Printf("Get env settings")
-	telemetryHost := getEnvWithDefaul("TEL_HOST", "localhost")
-	telemetryPort := getEnvWithDefaul("TEL_PORT", "5600")
-	commandHost := getEnvWithDefaul("CMD_HOST", "localhost")
-	commandPort := getEnvWithDefaul("CMD_PORT", "5555")
+	tlog.InfoContext(r.ctx, "Get env settings")
+	telemetryHost := getEnvWithDefaulContext(r.ctx, "TEL_HOST", "localhost")
+	telemetryPort := getEnvWithDefaulContext(r.ctx, "TEL_PORT", "5600")
+	commandHost := getEnvWithDefaulContext(r.ctx, "CMD_HOST", "localhost")
+	commandPort := getEnvWithDefaulContext(r.ctx, "CMD_PORT", "5555")
 
 	commandAddr := fmt.Sprintf("%v:%v", commandHost, commandPort)
 	telemetryAddr := fmt.Sprintf("%v:%v", telemetryHost, telemetryPort)
-	log.Printf("TEL_HOST: %q TEL_PORT: %q CMD_HOST: %q CMD_PORT: %q",
+	tlog.InfoContextf(r.ctx, "TEL_HOST: %q TEL_PORT: %q CMD_HOST: %q CMD_PORT: %q",
 		telemetryHost, telemetryPort,
 		telemetryHost, telemetryPort,
 	)
 
-	log.Printf("Parse IP addresses [telemetry:%q command:%q]", telemetryAddr, commandAddr)
+	tlog.InfoContextf(r.ctx, "Parse IP addresses [telemetry:%q command:%q]", telemetryAddr, commandAddr)
 	r.telemetryListner, err = net.Listen("tcp", telemetryAddr)
 	if err != nil {
 		return nil, fmt.Errorf("listen telemetry port: %w", err)
@@ -54,13 +54,13 @@ func NewRobot(ctx context.Context) (*Robot, error) {
 		return nil, fmt.Errorf("dial comand port: %w", err)
 	}
 
-	log.Printf("Accept robot telemetry")
+	tlog.InfoContext(r.ctx, "Accept robot telemetry")
 	r.telemetryConn, err = r.telemetryListner.Accept()
 	if err != nil {
 		return nil, fmt.Errorf("accept telemetry connection: %w", err)
 	}
 
-	log.Printf("Start net demons")
+	tlog.InfoContext(r.ctx, "Start net demons")
 	go telemetryDemon(r)
 
 	return r, nil
@@ -84,6 +84,16 @@ func getEnvWithDefaul(envkey, defaultVal string) string {
 		return res
 	}
 
-	// WARN
+	tlog.Warnf("Not found env with key %q used defult %q", envkey, defaultVal)
+	return defaultVal
+}
+
+func getEnvWithDefaulContext(ctx context.Context, envkey, defaultVal string) string {
+	res, ok := os.LookupEnv(envkey)
+	if ok {
+		return res
+	}
+
+	tlog.WarnContextf(ctx, "Not found env with key %q used defult %q", envkey, defaultVal)
 	return defaultVal
 }

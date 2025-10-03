@@ -10,7 +10,7 @@ import (
 type Telemetry struct {
 	Header struct {
 		Size   uint32
-		magic  [4]byte
+		Magic  [4]byte
 		OdomX  float32
 		OdomY  float32
 		OdomTh float32
@@ -47,8 +47,8 @@ func ParseTelemetry(data []byte, t *Telemetry) error {
 }
 
 func (t Telemetry) Validate() error {
-	if !bytes.Equal(t.Header.magic[:], magic) {
-		return fmt.Errorf("wrong magic expected: %v get: %v", magic, t.Header.magic[:])
+	if !bytes.Equal(t.Header.Magic[:], magic) {
+		return fmt.Errorf("wrong magic expected: %v get: %v", magic, t.Header.Magic[:])
 	}
 
 	return nil
