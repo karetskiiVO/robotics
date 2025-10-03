@@ -5,15 +5,15 @@ import asyncio
 
 @dataclass
 class Telemetry(object):
-    odometry_x: float
-    odometry_y: float
-    odometry_angle: float
-    v_x: float
-    v_y: float
-    omega: float
-    omega_x_imu: float
-    omega_y_imu: float
-    omega_z_imu: float
+    odom_x: float
+    odom_y: float
+    odom_th: float
+    vx: float
+    vy: float
+    vth: float
+    wx: float
+    wy: float
+    wz: float
     lidar_data: list[float]
 
 
@@ -24,15 +24,27 @@ class TelemetryPort(object):
         self.telem = None
 
     async def connect(self):
-        loop = asyncio.get_running_loop()
-        self.reader, self.writer = asyncio.open_connection(self.ip, self.port,
-                                                           loop=loop)
+        self.reader, self.writer = await asyncio.open_connection(self.ip,
+                                                                 self.port)
 
     async def receive_data(self):
-        raw_bytes = await self.reader.read(65535)
-        data = json.loads(raw_bytes.decode())
-        self.telem = Telemetry(**data['Telemetry'])
+        while True:
+            raw_bytes = await self.reader.read(65535)
+            data = json.loads(raw_bytes.decode())
+            self.telem = Telemetry(**data['Telemetry'])
+            print(self.telem)
 
     @property
     def get_telem(self):
         return self.telem
+
+
+if __name__ == '__main__':
+    async def main():
+        port = TelemetryPort()
+        await port.connect()
+
+        receive_task = asyncio.create_task(port.receive_data())
+        await receive_task
+
+    asyncio.run(main())

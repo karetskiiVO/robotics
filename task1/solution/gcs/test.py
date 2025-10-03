@@ -37,8 +37,9 @@ class TelemetryReader(object):
                           telem[:TelemetryReader.nav_struct_size])
         lidar_data = struct.unpack(f'<{n}f',
                                    telem[TelemetryReader.nav_struct_size:])
-        return dict(odom_x=odom_x, odom_y=odom_y, odom_th=odom_th, vx=vx,
-                    vy=vy, vth=vth, wx=wx, wy=wy, wz=wz, lidar_data=lidar_data)
+        return dict(Telemetry=dict(odom_x=odom_x, odom_y=odom_y,
+                                   odom_th=odom_th, vx=vx, vy=vy, vth=vth,
+                                   wx=wx, wy=wy, wz=wz, lidar_data=lidar_data))
 
 
 class TelemetryWriter(object):
