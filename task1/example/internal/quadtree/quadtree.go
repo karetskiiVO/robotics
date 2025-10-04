@@ -1,8 +1,6 @@
 package quadtree
 
 import (
-	"math"
-
 	"github.com/karetskiiVO/robotics/task1/example/external/gods/maps/treemap"
 )
 
@@ -15,8 +13,7 @@ type QuadTree struct {
 	precision float32
 
 	// ROOT всегда на нулевой позиции
-	nodes  []QuadTreeNode
-	freeID []QuadTreeNodeID
+	nodes []QuadTreeNode
 
 	leafGraph graph
 }
@@ -49,14 +46,6 @@ func (q *QuadTree) accept(id QuadTreeNodeID) *QuadTreeNode {
 
 // не добавляет в граф, просто аллоцирует вершину
 func (q *QuadTree) newQuadTreeNode(node QuadTreeNode) QuadTreeNodeID {
-	if len(q.freeID) > 0 {
-		id := q.freeID[len(q.freeID)-1]
-
-		q.freeID = q.freeID[:len(q.freeID)-1]
-		q.nodes[id] = node
-		return id
-	}
-
 	q.nodes = append(q.nodes, node)
 	return QuadTreeNodeID(len(q.nodes) - 1)
 }
@@ -90,6 +79,7 @@ func (q *QuadTree) find(nodeID QuadTreeNodeID, x, y float32, withQuad bool) Quad
 		if node.IsTerminal() {
 			if withQuad {
 				q.quadNode(nodeID)
+				node = q.accept(nodeID)
 			} else {
 				return nodeID
 			}
@@ -136,7 +126,7 @@ func (q *QuadTree) quadNode(nodeID QuadTreeNodeID) {
 	nodex, nodey := node.x(), node.y()
 
 	/// MAYBE BUG
-	node.childs = [2][2]QuadTreeNodeID{
+	createdChilds := [2][2]QuadTreeNodeID{
 		{
 			q.newQuadTreeNode(QuadTreeNode{
 				xmin: node.xmin,
@@ -166,6 +156,8 @@ func (q *QuadTree) quadNode(nodeID QuadTreeNodeID) {
 			}),
 		},
 	}
+	node = q.accept(nodeID)
+	node.childs = createdChilds
 
 	neighboursIDs := q.leafGraph.Neighbours(nodeID)
 	q.leafGraph.RemoveVert(nodeID)
@@ -192,27 +184,21 @@ func (q *QuadTree) quadNode(nodeID QuadTreeNodeID) {
 	for _, neighbourID := range neighboursIDs {
 		neighbour := q.accept(neighbourID)
 		// По идее проблем быть не должно, а так хз
-		neighbourx := neighbour.x()
-		neighboury := neighbour.y()
 
-		mindist := float32(math.Inf(1))
-
-		for _, child := range childs {
-			dx := (neighbourx - child.x())
-			dy := (neighboury - child.y())
-			dist := dx*dx + dy*dy
-
-			mindist = min(mindist, dist)
-		}
-
-		for childIdx, child := range childs {
-			dx := (neighbourx - child.x())
-			dy := (neighboury - child.y())
-			dist := dx*dx + dy*dy
-
-			if dist-mindist < 0.1*q.precision {
-				q.leafGraph.AddEdge(neighbourID, childIDs[childIdx])
+		for idx, child := range childs {
+			if touches(neighbour, child) {
+				q.leafGraph.AddEdge(neighbourID, childIDs[idx])
 			}
 		}
 	}
+}
+
+func touches(qn1, qn2 *QuadTreeNode) bool {
+	verticalTouch := (qn1.xmax == qn2.xmin || qn2.xmax == qn1.xmin) &&
+		(qn1.ymin < qn2.ymax && qn1.ymax > qn2.ymin)
+
+	horizontalTouch := (qn1.ymax == qn2.ymin || qn2.ymax == qn1.ymin) &&
+		(qn1.xmin < qn2.xmax && qn1.xmax > qn2.xmin)
+
+	return verticalTouch || horizontalTouch
 }

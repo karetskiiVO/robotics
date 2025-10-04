@@ -23,3 +23,11 @@ func (n QuadTreeNode) x() float32 {
 func (n QuadTreeNode) y() float32 {
 	return (n.ymin + n.ymax) / 2
 }
+
+func (n QuadTreeNode) rx() float32 {
+	return (n.xmax - n.xmin) / 2
+}
+
+func (n QuadTreeNode) ry() float32 {
+	return (n.ymax - n.ymin) / 2
+}

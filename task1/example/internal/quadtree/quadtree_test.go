@@ -2,7 +2,7 @@ package quadtree
 
 import (
 	"math"
-	"math/rand/v2"
+	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -20,7 +20,7 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
-	if time.Since(g.lastUpdate) > time.Second/100 && len(points) < 2 {
+	if time.Since(g.lastUpdate) > time.Second/100 && len(points) < 20 {
 		g.lastUpdate = time.Now()
 
 		x, y := rand.Float32(), rand.Float32()
@@ -58,7 +58,7 @@ func drawCircle(screen *ebiten.Image, x, y, radius int, clr color.Color) {
 
 func TestQuadTree(t *testing.T) {
 	game := &Game{
-		quadro:     New(0, 0, 1, 1, 0.5),
+		quadro:     New(0, 0, 1, 1, 0.1),
 		lastUpdate: time.Now(),
 	}
 
@@ -116,10 +116,6 @@ func drawQuadro(screen *ebiten.Image, tree *QuadTree) {
 
 	tree.leafGraph.Each(func(u QuadTreeNodeID, neighbour *treemap.Map[QuadTreeNodeID, float32]) {
 		neighbour.Each(func(v QuadTreeNodeID, _ float32) {
-			if u > v {
-				return
-			}
-
 			uNode := tree.accept(u)
 			vNode := tree.accept(v)
 
