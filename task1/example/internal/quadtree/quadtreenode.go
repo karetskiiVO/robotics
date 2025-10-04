@@ -9,7 +9,6 @@ type QuadTreeNode struct {
 	xmax   float32
 	ymin   float32
 	ymax   float32
-	rank   int
 	childs [2][2]QuadTreeNodeID
 }
 

@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"os"
 	"sync"
 
-	"github.com/karetskiiVO/robotics/task1/example/internal/transform"
+	"github.com/karetskiiVO/robotics/task1/example/internal/navigation"
 	"github.com/phpgao/tlog"
 )
 
@@ -22,14 +21,16 @@ type Robot struct {
 	ctx    context.Context
 	cancel func()
 
-	transformMU sync.RWMutex
-	transform   transform.Transform
+	navMU sync.RWMutex
+	nav   navigation.System
 }
 
 func NewRobot(ctx context.Context) (*Robot, error) {
 	var err error
 	r := &Robot{}
 	r.ctx, r.cancel = context.WithCancel(ctx)
+
+	r.nav = navigation.New(-10, -10, 10, 10, 1e-3)
 
 	tlog.InfoContext(r.ctx, "Get env settings")
 	telemetryHost := getEnvWithDefaulContext(r.ctx, "TEL_HOST", "localhost")
@@ -76,24 +77,4 @@ func (r *Robot) Dispose() {
 	r.telemetryListner.Close()
 	r.telemetryConn.Close()
 	r.commandConn.Close()
-}
-
-func getEnvWithDefaul(envkey, defaultVal string) string {
-	res, ok := os.LookupEnv(envkey)
-	if ok {
-		return res
-	}
-
-	tlog.Warnf("Not found env with key %q used defult %q", envkey, defaultVal)
-	return defaultVal
-}
-
-func getEnvWithDefaulContext(ctx context.Context, envkey, defaultVal string) string {
-	res, ok := os.LookupEnv(envkey)
-	if ok {
-		return res
-	}
-
-	tlog.WarnContextf(ctx, "Not found env with key %q used defult %q", envkey, defaultVal)
-	return defaultVal
 }

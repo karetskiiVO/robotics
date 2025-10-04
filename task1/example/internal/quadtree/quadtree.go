@@ -1,6 +1,8 @@
 package quadtree
 
 import (
+	"math"
+
 	"github.com/karetskiiVO/robotics/task1/example/external/gods/maps/treemap"
 )
 
@@ -25,7 +27,6 @@ func New(x1, y1, x2, y2, precision float32) *QuadTree {
 		xmax: max(x1, x2),
 		ymin: min(y1, y2),
 		ymax: max(y1, y2),
-		rank: 0,
 	}
 
 	leafGraph := NewGraph()
@@ -60,9 +61,9 @@ func (q *QuadTree) newQuadTreeNode(node QuadTreeNode) QuadTreeNodeID {
 	return QuadTreeNodeID(len(q.nodes) - 1)
 }
 
-func (q *QuadTree) free(id QuadTreeNodeID) {
-	q.freeID = append(q.freeID, id)
-}
+// func (q *QuadTree) free(id QuadTreeNodeID) {
+// 	q.freeID = append(q.freeID, id)
+// }
 
 func (q *QuadTree) Find(x, y float32) (QuadTreeNodeID, bool) {
 	root := q.accept(rootID)
@@ -86,12 +87,12 @@ func (q *QuadTree) find(nodeID QuadTreeNodeID, x, y float32, withQuad bool) Quad
 			return nodeID
 		}
 
-		if withQuad {
-			q.quadNode(nodeID)
-		}
-
 		if node.IsTerminal() {
-			return nodeID
+			if withQuad {
+				q.quadNode(nodeID)
+			} else {
+				return nodeID
+			}
 		}
 
 		xmid := (xmin + xmax) / 2
@@ -126,7 +127,7 @@ func (q *QuadTree) Prick(x, y float32) {
 	}
 
 	nodeID := q.find(rootID, x, y, true)
-	q.leafGraph.Remove(nodeID)
+	q.leafGraph.RemoveVert(nodeID)
 }
 
 func (q *QuadTree) quadNode(nodeID QuadTreeNodeID) {
@@ -142,14 +143,12 @@ func (q *QuadTree) quadNode(nodeID QuadTreeNodeID) {
 				ymin: node.ymin,
 				xmax: nodex,
 				ymax: nodey,
-				rank: node.rank + 1,
 			}),
 			q.newQuadTreeNode(QuadTreeNode{
 				xmin: node.xmin,
 				ymin: nodey,
 				xmax: nodex,
 				ymax: node.ymax,
-				rank: node.rank + 1,
 			}),
 		},
 		{
@@ -158,14 +157,12 @@ func (q *QuadTree) quadNode(nodeID QuadTreeNodeID) {
 				ymin: node.ymin,
 				xmax: node.xmax,
 				ymax: nodey,
-				rank: node.rank + 1,
 			}),
 			q.newQuadTreeNode(QuadTreeNode{
 				xmin: nodex,
 				ymin: nodey,
 				xmax: node.xmax,
 				ymax: node.ymax,
-				rank: node.rank + 1,
 			}),
 		},
 	}
@@ -177,6 +174,20 @@ func (q *QuadTree) quadNode(nodeID QuadTreeNodeID) {
 	q.leafGraph.AddEdge(node.childs[0][1], node.childs[1][1])
 	q.leafGraph.AddEdge(node.childs[1][1], node.childs[1][0])
 	q.leafGraph.AddEdge(node.childs[1][0], node.childs[0][0])
+
+	childIDs := [...]QuadTreeNodeID{
+		node.childs[0][0],
+		node.childs[0][1],
+		node.childs[1][0],
+		node.childs[1][1],
+	}
+	childs := [...]*QuadTreeNode{
+		q.accept(childIDs[0]),
+		q.accept(childIDs[1]),
+		q.accept(childIDs[2]),
+		q.accept(childIDs[3]),
+	}
+
 	// надо распихать теперь соседей
 	for _, neighbourID := range neighboursIDs {
 		neighbour := q.accept(neighbourID)
@@ -184,20 +195,24 @@ func (q *QuadTree) quadNode(nodeID QuadTreeNodeID) {
 		neighbourx := neighbour.x()
 		neighboury := neighbour.y()
 
-		if neighbourx <= nodex && neighboury <= neighboury {
-			q.leafGraph.AddEdge(neighbourID, node.childs[0][0])
+		mindist := float32(math.Inf(1))
+
+		for _, child := range childs {
+			dx := (neighbourx - child.x())
+			dy := (neighboury - child.y())
+			dist := dx*dx + dy*dy
+
+			mindist = min(mindist, dist)
 		}
 
-		if neighbourx <= nodex && neighboury >= neighboury {
-			q.leafGraph.AddEdge(neighbourID, node.childs[0][1])
-		}
+		for childIdx, child := range childs {
+			dx := (neighbourx - child.x())
+			dy := (neighboury - child.y())
+			dist := dx*dx + dy*dy
 
-		if neighbourx >= nodex && neighboury <= neighboury {
-			q.leafGraph.AddEdge(neighbourID, node.childs[1][0])
-		}
-
-		if neighbourx >= nodex && neighboury >= neighboury {
-			q.leafGraph.AddEdge(neighbourID, node.childs[1][1])
+			if dist-mindist < 0.1*q.precision {
+				q.leafGraph.AddEdge(neighbourID, childIDs[childIdx])
+			}
 		}
 	}
 }
