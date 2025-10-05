@@ -7,7 +7,7 @@ package main
 import (
 	"cmp"
 
-	pq "github.com/emirpasic/gods/v2/queues/priorityqueue"
+	pq "github.com/karetskiiVO/robotics/task2/solution/external/gods/queues/priorityqueue"
 )
 
 // Element is an entry in the priority queue

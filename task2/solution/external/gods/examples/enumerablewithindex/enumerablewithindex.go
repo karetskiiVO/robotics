@@ -7,7 +7,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/emirpasic/gods/v2/sets/treeset"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/sets/treeset"
 )
 
 func printSet(txt string, set *treeset.Set[int]) {

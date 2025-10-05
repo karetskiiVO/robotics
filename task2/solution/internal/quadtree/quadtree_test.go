@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/karetskiiVO/robotics/task1/example/external/gods/maps/treemap"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps/treemap"
 
 	"image/color"
 	"testing"

@@ -18,8 +18,8 @@ package hashbidimap
 import (
 	"fmt"
 
-	"github.com/emirpasic/gods/v2/maps"
-	"github.com/emirpasic/gods/v2/maps/hashmap"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps/hashmap"
 )
 
 // Assert Map implementation

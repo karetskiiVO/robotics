@@ -5,7 +5,7 @@
 package binaryheap
 
 import (
-	"github.com/emirpasic/gods/v2/containers"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/containers"
 )
 
 // Assert Iterator implementation

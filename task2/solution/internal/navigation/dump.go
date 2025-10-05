@@ -6,7 +6,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/karetskiiVO/robotics/task1/example/internal/quadtree"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/quadtree"
 	"github.com/phpgao/tlog"
 )
 

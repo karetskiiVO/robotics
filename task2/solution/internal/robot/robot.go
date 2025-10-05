@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/karetskiiVO/robotics/task1/example/internal/navigation"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/navigation"
 	"github.com/phpgao/tlog"
 )
 

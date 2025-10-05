@@ -4,7 +4,7 @@
 
 package arraylist
 
-import "github.com/emirpasic/gods/v2/containers"
+import "github.com/karetskiiVO/robotics/task2/solution/external/gods/containers"
 
 // Assert Iterator implementation
 var _ containers.ReverseIteratorWithIndex[int] = (*Iterator[int])(nil)

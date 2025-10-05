@@ -14,8 +14,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/emirpasic/gods/v2/lists"
-	"github.com/emirpasic/gods/v2/utils"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/lists"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/utils"
 )
 
 // Assert List implementation

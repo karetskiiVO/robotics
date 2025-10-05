@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/emirpasic/gods/v2/testutils"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/testutils"
 )
 
 func TestSetNew(t *testing.T) {

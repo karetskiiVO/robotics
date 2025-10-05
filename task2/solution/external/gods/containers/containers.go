@@ -17,7 +17,7 @@ import (
 	"cmp"
 	"slices"
 
-	"github.com/emirpasic/gods/v2/utils"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/utils"
 )
 
 // Container is base interface that all data structures implement.

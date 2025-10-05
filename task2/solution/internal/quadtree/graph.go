@@ -2,7 +2,7 @@ package quadtree
 
 import (
 	"github.com/goplus/spbase/mathf"
-	"github.com/karetskiiVO/robotics/task1/example/external/gods/maps/treemap"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps/treemap"
 )
 
 type graph struct {

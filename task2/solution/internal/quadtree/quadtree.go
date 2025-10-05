@@ -1,7 +1,7 @@
 package quadtree
 
 import (
-	"github.com/karetskiiVO/robotics/task1/example/external/gods/maps/treemap"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps/treemap"
 )
 
 const (

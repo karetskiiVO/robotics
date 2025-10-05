@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/emirpasic/gods/v2/sets"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/sets"
 )
 
 // Assert Set implementation

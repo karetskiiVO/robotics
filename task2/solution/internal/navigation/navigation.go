@@ -8,10 +8,10 @@ import (
 	"sync"
 
 	"github.com/goplus/spbase/mathf"
-	"github.com/karetskiiVO/robotics/task1/example/external/gods/maps/treemap"
-	"github.com/karetskiiVO/robotics/task1/example/internal/quadtree"
-	"github.com/karetskiiVO/robotics/task1/example/internal/robobpacket"
-	"github.com/karetskiiVO/robotics/task1/example/internal/transform"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps/treemap"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/quadtree"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/robobpacket"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/transform"
 )
 
 var withDebug = false

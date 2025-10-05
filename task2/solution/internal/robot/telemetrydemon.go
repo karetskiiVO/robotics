@@ -1,8 +1,8 @@
 package robot
 
 import (
-	"github.com/karetskiiVO/robotics/task1/example/internal/robobpacket"
-	"github.com/karetskiiVO/robotics/task1/example/internal/transform"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/robobpacket"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/transform"
 	"github.com/phpgao/tlog"
 )
 
@@ -47,7 +47,6 @@ func telemetryDemon(r *Robot) {
 		if err != nil {
 			tlog.ErrorContext(r.ctx, err)
 		}
-
-		
+		_ = trace
 	}
 }

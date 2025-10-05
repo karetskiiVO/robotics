@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 
-	"github.com/karetskiiVO/robotics/task1/example/internal/logger"
-	"github.com/karetskiiVO/robotics/task1/example/internal/robot"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/logger"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/robot"
 	"github.com/phpgao/tlog"
 )
 

@@ -14,7 +14,7 @@ package hashmap
 import (
 	"fmt"
 
-	"github.com/emirpasic/gods/v2/maps"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps"
 )
 
 // Assert Map implementation

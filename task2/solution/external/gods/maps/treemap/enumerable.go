@@ -5,8 +5,8 @@
 package treemap
 
 import (
-	"github.com/emirpasic/gods/v2/containers"
-	rbt "github.com/emirpasic/gods/v2/trees/redblacktree"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/containers"
+	rbt "github.com/karetskiiVO/robotics/task2/solution/external/gods/trees/redblacktree"
 )
 
 // Assert Enumerable implementation

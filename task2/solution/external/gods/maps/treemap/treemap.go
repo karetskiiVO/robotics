@@ -16,9 +16,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/emirpasic/gods/v2/maps"
-	rbt "github.com/emirpasic/gods/v2/trees/redblacktree"
-	"github.com/emirpasic/gods/v2/utils"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps"
+	rbt "github.com/karetskiiVO/robotics/task2/solution/external/gods/trees/redblacktree"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/utils"
 )
 
 // Assert Map implementation

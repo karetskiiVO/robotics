@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/emirpasic/gods/v2/maps/treebidimap"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps/treebidimap"
 )
 
 // TreeBidiMapExample to demonstrate basic usage of TreeBidiMap
