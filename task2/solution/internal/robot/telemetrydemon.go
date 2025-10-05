@@ -1,6 +1,7 @@
 package robot
 
 import (
+	"github.com/goplus/spbase/mathf"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/robobpacket"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/transform"
 	"github.com/phpgao/tlog"
@@ -8,7 +9,7 @@ import (
 
 var packageSize int = 4096
 
-func telemetryDemon(r *Robot) {
+func (r *Robot) telemetryDemon() {
 	buffer := make([]byte, packageSize)
 
 	for {
@@ -45,8 +46,27 @@ func telemetryDemon(r *Robot) {
 		// Корявый прототип
 		trace, err := r.nav.TraceToTarget(transform.NewVec2(0, 3))
 		if err != nil {
-			tlog.ErrorContext(r.ctx, err)
+			tlog.ErrorContextf(r.ctx, "While calculate trace: %v", err)
+			continue
 		}
-		_ = trace
+
+		// просто проехаться по прямой
+		if len(trace) == 2 {
+			x, y := trace[1].Sub(trace[0]).Unpak()
+			r.target <- transform.Transform{Position: trace[1], Thetha: float32(mathf.Atan2(y, x))}
+		} else {
+			dir1, dir2 := trace[1].Sub(trace[0]), trace[2].Sub(trace[0])
+
+			// коллинеарность
+			if dir1.Cross(dir2) < 1e-3 || trace[1].Sub(trace[0]).Mag2() < 1e-3 {
+				x, y := trace[2].Sub(trace[0]).Unpak()
+				r.target <- transform.Transform{Position: trace[1], Thetha: float32(mathf.Atan2(y, x))}
+			} else {
+				x, y := trace[2].Sub(trace[0]).Unpak()
+				r.target <- transform.Transform{Position: trace[1], Thetha: float32(mathf.Atan2(y, x))}
+			}
+		}
+
+		// r.target <- ...
 	}
 }

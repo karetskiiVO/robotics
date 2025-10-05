@@ -1,18 +1,25 @@
 package quadtree
 
 import (
+	"fmt"
+	"strings"
+	"text/tabwriter"
+
 	"github.com/goplus/spbase/mathf"
 	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps/treemap"
+	"github.com/karetskiiVO/robotics/task2/solution/external/gods/sets/treeset"
 )
 
 type graph struct {
 	*treemap.Map[QuadTreeNodeID, *treemap.Map[QuadTreeNodeID, float32]]
+	Dead     *treeset.Set[QuadTreeNodeID]
 	baseTree *QuadTree
 }
 
 func newGraph() graph {
 	return graph{
 		treemap.New[QuadTreeNodeID, *treemap.Map[QuadTreeNodeID, float32]](),
+		treeset.New[QuadTreeNodeID](),
 		nil,
 	}
 }
@@ -54,13 +61,7 @@ func (g *graph) removeOneDirection(u, v QuadTreeNodeID) {
 }
 
 func (g *graph) removeVert(u QuadTreeNodeID) {
-	if neighbours, ok := g.Get(u); ok {
-		neighbours.Each(func(v QuadTreeNodeID, _ float32) {
-			g.removeOneDirection(v, u)
-		})
-
-		g.Remove(u)
-	}
+	g.Dead.Add(u)
 }
 
 func (g *graph) Neighbours(u QuadTreeNodeID) []QuadTreeNodeID {
@@ -69,4 +70,18 @@ func (g *graph) Neighbours(u QuadTreeNodeID) []QuadTreeNodeID {
 	}
 
 	return nil
+}
+
+func (g graph) String() string {
+	builder := strings.Builder{}
+	w := tabwriter.NewWriter(&builder, 0, 0, 2, ' ', 0)
+
+	g.Each(func(u QuadTreeNodeID, edges *treemap.Map[QuadTreeNodeID, float32]) {
+		edges.Each(func(v QuadTreeNodeID, dist float32) {
+			fmt.Fprintf(w, "%v\t->\t%v\n", u, v)
+		})
+	})
+
+	w.Flush()
+	return builder.String()
 }

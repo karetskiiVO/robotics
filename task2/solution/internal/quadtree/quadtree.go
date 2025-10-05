@@ -91,18 +91,14 @@ func (q *QuadTree) find(nodeID QuadTreeNodeID, x, y float32, withQuad bool) Quad
 		xIdx, yIdx := -1, -1
 
 		if x < xmid {
-			xmax = xmid
 			xIdx = 0
 		} else {
-			xmin = xmid
 			xIdx = 1
 		}
 
 		if y < ymid {
-			ymax = ymid
 			yIdx = 0
 		} else {
-			ymin = ymid
 			yIdx = 1
 		}
 

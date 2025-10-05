@@ -53,3 +53,8 @@ func (t Telemetry) Validate() error {
 
 	return nil
 }
+
+type Command struct {
+	Linear  float32
+	Angular float32
+}

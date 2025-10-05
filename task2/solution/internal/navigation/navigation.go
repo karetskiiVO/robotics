@@ -7,6 +7,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/ethereum/go-ethereum/common/prque"
 	"github.com/goplus/spbase/mathf"
 	"github.com/karetskiiVO/robotics/task2/solution/external/gods/maps/treemap"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/quadtree"
@@ -22,7 +23,7 @@ type System struct {
 	tree      *quadtree.QuadTree
 	Transform transform.Transform
 
-	mu sync.Mutex
+	Mu sync.RWMutex
 }
 
 func New(ctx context.Context, x1, y1, x2, y2, precision float32) *System {
@@ -39,7 +40,7 @@ func New(ctx context.Context, x1, y1, x2, y2, precision float32) *System {
 
 // или делать дипкопи для потокобезопасности
 func (s *System) Update(telemetry *robobpacket.Telemetry) {
-	s.mu.Lock()
+	s.Mu.Lock()
 	// TODO: более акууратно пересчитывать
 	s.Transform.Position = transform.NewVec2(telemetry.Header.OdomX, telemetry.Header.OdomY)
 	s.Transform.Thetha = telemetry.Header.OdomTh
@@ -54,25 +55,30 @@ func (s *System) Update(telemetry *robobpacket.Telemetry) {
 
 		s.tree.Prick(x, y)
 	}
-	s.mu.Unlock()
+	s.Mu.Unlock()
 }
 
 func (s *System) TraceToTarget(target transform.Vec2) (transform.RawPath, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.Mu.RLock()
+	defer s.Mu.RUnlock()
 
 	// TODO: проверка на истинность
-	curID, _ := s.tree.Find(s.Transform.Position.Unpak())
-	targetID, _ := s.tree.Find(target.Unpak())
+	curID, ok := s.tree.Find(s.Transform.Position.Unpak())
+	if !ok {
+		return nil, fmt.Errorf("can't find current with id: %v", curID)
+	}
+	targetID, ok := s.tree.Find(target.Unpak())
+	if !ok {
+		return nil, fmt.Errorf("can't find target with id: %v", targetID)
+	}
 
-	dists := treemap.New[float32, quadtree.QuadTreeNodeID]()
-	dists.Put(0, curID)
+	dists := prque.New[float32, quadtree.QuadTreeNodeID](nil)
+	dists.Push(curID, 0)
 
 	used := treemap.New[quadtree.QuadTreeNodeID, float32]()
 
 	for dists.Size() > 0 {
-		distu, u, _ := dists.Min()
-		dists.Remove(distu)
+		u, distu := dists.Pop()
 
 		if _, ok := used.Get(u); ok {
 			continue
@@ -88,8 +94,11 @@ func (s *System) TraceToTarget(target transform.Vec2) (transform.RawPath, error)
 			if _, ok := used.Get(v); ok {
 				return
 			}
+			if ok := s.tree.Dead.Contains(v); ok {
+				return
+			}
 
-			dists.Put(distu+distuv, v)
+			dists.Push(v, distu+distuv)
 		})
 	}
 
