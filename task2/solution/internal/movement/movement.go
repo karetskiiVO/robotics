@@ -3,6 +3,7 @@ package movement
 import (
 	"net";
 	"encoding/binary";
+	"errors";
 )
 
 type State struct {
@@ -11,12 +12,13 @@ type State struct {
 }
 
 type Controller struct {
-	Conn net.Conn
+	conn net.Conn
 	buffer []byte
-	State State
 }
 
 const bufferSize int = 16
+const MaxV float32 = 0.5
+const MaxOmega float32 = 1.0
 
 func NewController() *Controller {
 	c := new(Controller)
@@ -24,20 +26,31 @@ func NewController() *Controller {
 	return c
 }
 
-func (c Controller)Connect(address string) error {
+func (c *Controller)Connect(address string) error {
 	conn, err := net.Dial("udp", address)
 	if err != nil {
 		return err
 	}
-	c.Conn = conn
+	c.conn = conn
 	return nil
 }
 
-func (c Controller)Update() error {
-	binary.Encode(c.buffer, binary.LittleEndian, &c.State)	
-	_, err := c.Conn.Write(c.buffer)
+func (c *Controller)SetState(v float32, omega float32) error {
+	if v > MaxV || omega > MaxOmega {
+		return errors.New("Invalid parameters")
+	}
+	state := State{V: v, Omega: omega}
+	binary.Encode(c.buffer, binary.LittleEndian, state)	
+	_, err := c.conn.Write(c.buffer)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (c *Controller)Disconnect() error {
+	if c.conn != nil {
+		return c.conn.Close()
 	}
 	return nil
 }
