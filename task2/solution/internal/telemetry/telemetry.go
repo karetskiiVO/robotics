@@ -1,9 +1,12 @@
 package telemetry
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"net"
+	"sync"
+	"fmt"
 )
 
 type Telemetry struct {
@@ -24,22 +27,22 @@ type Telemetry struct {
 	LidarData []float32
 }
 
-const headerSize int = 12
+const headerSize int = 12 * 8
 const bufferSize int = 2048
 const magic uint32 = 1196704343
 
 type Demon struct {
 	conn net.Conn
 	telem Telemetry
+	mu sync.RWMutex
 }
 
 func SummonDemon() *Demon {
 	demon := new(Demon)
-	demon.buffer = make([]byte, bufferSize)
 	return demon
 }
 
-func (d *Demon) Ponder(address string) error {
+func (d *Demon) Posess(address string) error {
 	list, err := net.Listen("tcp", address)
 	if err != nil {
 		return err
@@ -49,10 +52,8 @@ func (d *Demon) Ponder(address string) error {
 	if err != nil {
 		return err
 	}
-	return nil	
-}
+	defer d.conn.Close()
 
-func (d *Demon) Posess() error {
 	buffer := make([]byte, bufferSize)
 	for {
 		_, err := d.conn.Read(buffer[:headerSize])
@@ -60,14 +61,35 @@ func (d *Demon) Posess() error {
 			return err
 		}
 
-		if err = d.unmarshallTelemetry(buffer); err != nil {
+		d.mu.Lock()
+		if err = d.unmarshallTelemetry(buffer[:headerSize]); err != nil {
+			fmt.Printf("error\n")
 			return err
 		}
+		d.mu.Unlock()
+
+		dataSize := d.telem.Header.LidarDataSize * 4
+		_, err = d.conn.Read(buffer[:dataSize])
+		if err != nil {
+			return err
+		}
+
+		d.mu.Lock()
+		binary.Decode(buffer[:dataSize], binary.LittleEndian, d.telem.LidarData)
+		d.mu.Unlock()
 	}
 }
 
+func (d *Demon)Telemetry() *Telemetry {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	return &d.telem
+}
+
 func (d *Demon)unmarshallTelemetry(raw []byte) error {
-	binary.Decode(raw, binary.LittleEndian, &d.telem)
+	reader := bytes.NewReader(raw)
+	binary.Read(reader, binary.LittleEndian, &d.telem.Header)
 	if d.telem.Header.Magic != magic {
 		return errors.New("Invalid magic")
 	}
