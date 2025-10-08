@@ -53,8 +53,10 @@ func NavSetup(nav Navigator) {
 }
 
 func NavLoop() {
-	telemData := telemHandle.Receive()
-	navInstance.Step(telemData)
+	for {
+		telemData := telemHandle.Receive()
+		navInstance.Step(telemData)
+	}
 }
 
 func CmdSetup(cmd Commander) {

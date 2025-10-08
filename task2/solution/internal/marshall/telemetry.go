@@ -62,6 +62,7 @@ func (d *Telemetry) Loop() error {
 		}
 
 		if err = unmarshallTelemetry(buffer[:headerSize], telem); err != nil {
+			log.Println(err)
 			return err
 		}
 

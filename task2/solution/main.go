@@ -16,9 +16,10 @@ func main() {
 	navigation.NavSetup(nav)
 	navigation.CmdSetup(cmd)
 	cmd.MoveTo(vectors.Vector2{X: 0.5, Y: 0.5})
+	go navigation.NavLoop()
+	go cmd.Loop()
 
 	for {
-		navigation.NavLoop()
 		navigation.CmdLoop()
 	}
 }
