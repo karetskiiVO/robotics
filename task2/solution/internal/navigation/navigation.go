@@ -2,7 +2,7 @@ package navigation
 
 import (
 	"github.com/Dobefu/vectors"
-	"github.com/karetskiiVO/robotics/task2/solution/internal/telemetry"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"
 )
 
 type Navigator interface {
@@ -10,7 +10,7 @@ type Navigator interface {
 	Velocity() vectors.Vector2
 	AngularVelocity() vectors.Vector2
 	Heading() float64
-	Step(*telemetry.Telemetry)
+	Step(*marshall.TelemPacket)
 }
 
 type Commander interface {

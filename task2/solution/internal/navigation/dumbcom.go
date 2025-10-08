@@ -9,13 +9,13 @@ import (
 type State int
 const (
 	_ = iota
-	stateRotating State = 0
-	stateMoving State = 1
-	stateDone State = 2
+	stateDone State = 0
+	stateRotating State = 1
+	stateMoving State = 2
 )
 
 type DumbCommander struct {
-	nav Navigator
+	Nav Navigator
 	con movement.Controller
 	state State
 	targetPosition vectors.Vector2
@@ -29,11 +29,11 @@ const maxLinearAcc float64 = 0.05
 
 func (com *DumbCommander) Init(address string) {
 	com.con.Connect(address)
-	com.nav = *new(DumbNavigator);
+	com.Nav = new(DumbNavigator);
 }
 
 func (com *DumbCommander) MoveTo(point vectors.Vector2) {
-	currentPos := com.nav.Position()
+	currentPos := com.Nav.Position()
 	com.targetPosition = point
 
 	point.Sub(currentPos)
@@ -45,13 +45,13 @@ func (com *DumbCommander) MoveTo(point vectors.Vector2) {
 func (com *DumbCommander) Run() {
 	switch com.state {
 		case stateRotating: {
-			if withinTolerance(com.nav.Heading(), com.targetHeading, angleTolerance) {
+			if withinTolerance(com.Nav.Heading(), com.targetHeading, angleTolerance) {
 				com.state = stateMoving
 				com.con.SetState(float32(velocity), 0)
 			}
 		}
 		case stateMoving: {
-			predPos := predictPosition(com.nav.Position(), com.nav.Velocity())
+			predPos := predictPosition(com.Nav.Position(), com.Nav.Velocity())
 			dist := distance(predPos, com.targetPosition)
 			if withinTolerance(dist, 0, distanceTolerance) {
 				com.state = stateDone
