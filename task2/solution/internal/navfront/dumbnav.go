@@ -1,6 +1,7 @@
 package navfront
 
 import (
+	"math"
 	"github.com/Dobefu/vectors"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"
 )
@@ -16,12 +17,12 @@ func (nav *DumbNavigator) Step(telem *marshall.TelemPacket) {
 	nav.pos.X = float64(telem.Header.OdomX)
 	nav.pos.Y = float64(telem.Header.OdomY)
 
-	nav.vel.X = float64(telem.Header.Vx)
-	nav.vel.Y = float64(telem.Header.Vy)
-	
 	nav.omega.X = float64(telem.Header.Wx)
 	nav.omega.Y = float64(telem.Header.Wy)
 	nav.heading = float64(telem.Header.OdomTh)
+
+	nav.vel.X = float64(telem.Header.V) * math.Sin(nav.Heading())
+	nav.vel.Y = float64(telem.Header.V) * math.Cos(nav.Heading())
 }
 
 func (nav *DumbNavigator) Position() vectors.Vector2 {

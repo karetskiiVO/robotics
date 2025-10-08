@@ -3,7 +3,6 @@ package marshall
 import (
 	"net";
 	"encoding/binary";
-	"errors";
 	"log"
 )
 
@@ -18,9 +17,6 @@ type Commands struct {
 }
 
 const txBufferSize int = 16
-const MaxV float32 = 0.5
-const MaxOmega float32 = 1.0
-const MaxAcc float32 = 0.05
 
 func (c *Commands)Setup(address string) error {
 	conn, err := net.Dial("udp", address)
@@ -35,9 +31,6 @@ func (c *Commands)Setup(address string) error {
 // TODO: если значение неправильное, не падать, а обрезать его по границе?
 func (c *Commands) SetVelocity(v float64, omega float64) error {
 	v32, omega32 := float32(v), float32(omega)
-	if v32 > MaxV || omega32 > MaxOmega {
-		return errors.New("Invalid parameters")
-	}
 	state := State{V: v32, Omega: omega32}	
 	c.channel <- state
 	return nil

@@ -15,7 +15,7 @@ func main() {
 	cmd := new(navfront.DumbCommander)
 	navigation.NavSetup(nav)
 	navigation.CmdSetup(cmd)
-	cmd.MoveTo(vectors.Vector2{X: 0.5, Y: 0.5})
+	cmd.MoveTo(vectors.Vector2{X: 0, Y: 0.5})
 	go navigation.NavLoop()
 	go cmd.Loop()
 

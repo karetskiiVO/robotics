@@ -15,9 +15,9 @@ type TelemPacket struct {
 		OdomX float32
 		OdomY float32
 		OdomTh float32
-		Vx float32
+		V float32
 		Vy float32
-		Vz float32
+		Vth float32
 		Wx float32
 		Wy float32
 		Wz float32
