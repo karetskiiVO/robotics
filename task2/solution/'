@@ -1,0 +1,35 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"
+)
+
+var _ = fmt.Printf
+
+func main() {
+	con := new(marshall.Commands)	
+	telem := new(marshall.Telemetry)
+
+	err := telem.Setup("127.0.0.1:5600")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = con.Setup("127.0.0.1:5555")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	go con.Loop()
+	go telem.Loop()
+
+	con.SetVelocity(0.5, 0)
+
+	for {
+		fmt.Printf("%#v\n", telem.Receive().Header)
+	}
+}

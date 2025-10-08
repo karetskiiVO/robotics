@@ -3,6 +3,8 @@ package navigation
 import (
 	"fmt"
 	"os"
+	"sync"
+	"log"
 	"github.com/Dobefu/vectors"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"
 )
@@ -19,53 +21,70 @@ type Navigator interface {
 
 type Commander interface {
 	MoveTo(vectors.Vector2)
-	Step(Navigator) (float64, float64)
+	Step() (float64, float64)
 }
 
 // Временное решение, чтобы скрыть реализацию бэкенда
 
 var telemHandle *marshall.Telemetry = nil
 var ctrHandle *marshall.Commands = nil
-var telemInited bool = false
-var cmdInited bool = false
 
-func NavSetup() {
-	if telemInited {
-		panic("Nav system if a singleton!")
-	}
+var navOnce sync.Once
+var cmdOnce sync.Once
 
-	telemPort := loadParam("TELEMETRY_PORT", "5600")
-	telemHost := loadParam("TELEMETRY_HOST", "127.0.0.1")
+var navInstance Navigator
+var cmdInstance Commander
 
-	telemHandle = new(marshall.Telemetry)
-	telemHandle.Setup(telemHost+":"+telemPort)
-	go telemHandle.Loop()
+func NavSetup(nav Navigator) {
+	navOnce.Do(func() {
+		telemPort := loadParam("TELEMETRY_PORT", "5600")
+		telemHost := loadParam("TELEMETRY_HOST", "127.0.0.1")
 
-	telemInited = true
+		telemHandle = new(marshall.Telemetry)
+		err := telemHandle.Setup(telemHost+":"+telemPort)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		go telemHandle.Loop()
+		log.Println("Telemetry link up")
+		navInstance = nav
+	})
 }
 
-func NavLoop(nav Navigator) {
+func NavLoop() {
 	telemData := telemHandle.Receive()
-	nav.Step(telemData)
+	navInstance.Step(telemData)
 }
 
-func CmdSetup() {
-	if telemInited {
-		panic("Commander should be a singleton!")
-	}
-	cmdPort := loadParam("CMD_LISTEN_PORT", "5555")
-	cmdHost := loadParam("CMD_LISTEN_HOST", "127.0.0.1")
+func CmdSetup(cmd Commander) {
+	cmdOnce.Do(func() {
+		cmdPort := loadParam("CMD_LISTEN_PORT", "5555")
+		cmdHost := loadParam("CMD_LISTEN_HOST", "127.0.0.1")
 
-	ctrHandle = new(marshall.Commands)
-	ctrHandle.Setup(cmdHost+":"+cmdPort)
-	go ctrHandle.Loop()
+		ctrHandle = new(marshall.Commands)
+		err := ctrHandle.Setup(cmdHost+":"+cmdPort)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	cmdInited = true
+		go ctrHandle.Loop()
+		log.Println("Command link up")
+		cmdInstance = cmd
+	})
 }
 
-func CmdLoop(cmd Commander, nav Navigator) {
-	v, omega := cmd.Step(nav)
+func CmdLoop() {
+	v, omega := cmdInstance.Step()
 	ctrHandle.SetVelocity(v, omega)
+}
+
+func NavInstance() Navigator {
+	return navInstance
+}
+
+func CmdInstance() Commander {
+	return cmdInstance
 }
 
 func loadParam(name string, def string) string {

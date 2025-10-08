@@ -1,9 +1,10 @@
-package navigation
+package navfront
 
 import (
 	"math"
+	"log"
 	"github.com/Dobefu/vectors"
-	//"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"	
+	"github.com/karetskiiVO/robotics/task2/solution/internal/navigation"	
 )
 
 type Maneuver int
@@ -15,8 +16,6 @@ const (
 )
 
 type DumbCommander struct {
-	Nav Navigator
-	con movement.Controller
 	state Maneuver
 	targetPosition vectors.Vector2
 	targetHeading float64
@@ -24,52 +23,65 @@ type DumbCommander struct {
 
 const angleTolerance float64 = 1e-2
 const distanceTolerance float64 = 1e-2
-const velocity float64 = 0.5
+const maxVelocity float64 = 0.5
+const maxOmega float64 = 1.0
 const maxLinearAcc float64 = 0.05
 
-func (com *DumbCommander) Init(address string) {
-	com.con.Connect(address)
-	com.Nav = new(DumbNavigator);
-}
-
 func (com *DumbCommander) MoveTo(point vectors.Vector2) {
-	currentPos := com.Nav.Position()
+	nav := navigation.NavInstance()
+	currentPos := nav.Position()
 	com.targetPosition = point
 
 	point.Sub(currentPos)
 	com.targetHeading = point.AngleRadians()
+	log.Printf("TargHeading: %f deg, deltaR: %v {m, m}\n", radToDeg(com.targetHeading), point)
 
 	com.state = maneuverTurning
+	log.Println("Started maneuver: turning")
 }
 
-func (com *DumbCommander) Run() {
+func (com *DumbCommander) Step() (float64, float64) {
+	nav := navigation.NavInstance()
 	switch com.state {
 		case maneuverTurning: {
-			if withinTolerance(com.Nav.Heading(), com.targetHeading, angleTolerance) {
+			if withinTolerance(nav.Heading(), com.targetHeading, angleTolerance) {
 				com.state = maneuverLinear
-				com.con.SetState(float32(velocity), 0)
+				log.Printf("Heading within tolerance: theta=%f, theta_0=%f\n", nav.Heading(), com.targetHeading)
+				log.Println("Started maneuver: linear")
+			} else {
+				return 0, maxOmega
 			}
 		}
+		fallthrough
 		case maneuverLinear: {
-			predPos := predictPosition(com.Nav.Position(), com.Nav.Velocity())
+			predPos := predictPosition(nav.Position(), nav.Velocity())
 			dist := distance(predPos, com.targetPosition)
 			if withinTolerance(dist, 0, distanceTolerance) {
 				com.state = maneuverDone
-				com.con.SetState(0, 0)
+				log.Println("Movement done")
+			} else {
+				return maxVelocity, 0
 			}
 		}
+		fallthrough
 		case maneuverDone:
-			return
+			return 0, 0
+		default: // Что-то пошло ужасно неправильно
+			return 0, 0
 	}
 }
 
 func withinTolerance(val float64, target float64, tol float64) bool {
-	return math.Abs(target - val) / target < tol
+	return math.Abs(target - val) < tol
 }
 
 func distance(x vectors.Vector2, y vectors.Vector2) float64 {
 	y.Sub(x)
 	return y.Magnitude()
+}
+
+func radToDeg(rad float64) float64 {
+	return rad * 180/math.Pi
 }
 
 // Predicts position after deceleration from a given velocity, assuming 

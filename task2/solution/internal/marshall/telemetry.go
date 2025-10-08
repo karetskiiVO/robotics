@@ -5,9 +5,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"net"
-	"fmt"
+	"log"
 )
-var _ = fmt.Printf
 
 type TelemPacket struct {
 	Header struct {
@@ -58,7 +57,7 @@ func (d *Telemetry) Loop() error {
 	for {
 		_, err := d.conn.Read(buffer[:headerSize])
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return err
 		}
 
@@ -69,7 +68,7 @@ func (d *Telemetry) Loop() error {
 		dataSize := telem.Header.LidarDataSize * 4
 		_, err = d.conn.Read(buffer[:dataSize])
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return err
 		}
 

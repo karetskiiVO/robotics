@@ -4,7 +4,7 @@ import (
 	"net";
 	"encoding/binary";
 	"errors";
-	"fmt"
+	"log"
 )
 
 type State struct {
@@ -45,7 +45,6 @@ func (c *Commands) SetVelocity(v float64, omega float64) error {
 
 func (c *Commands)Loop() error {
 	buffer := make([]byte, txBufferSize)
-	fmt.Println("Started")
 	defer c.conn.Close()
 
 	for {
@@ -53,6 +52,7 @@ func (c *Commands)Loop() error {
 		binary.Encode(buffer, binary.LittleEndian, state)	
 		_, err := c.conn.Write(buffer)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 	}

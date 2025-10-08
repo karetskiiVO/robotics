@@ -1,4 +1,4 @@
-package navigation
+package navfront
 
 import (
 	"github.com/Dobefu/vectors"
