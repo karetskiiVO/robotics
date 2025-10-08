@@ -32,11 +32,13 @@ func (c *Commands)Setup(address string) error {
 	return nil
 }
 
-func (c *Commands) SetVelocity(v float32, omega float32) error {
-	if v > MaxV || omega > MaxOmega {
+// TODO: если значение неправильное, не падать, а обрезать его по границе?
+func (c *Commands) SetVelocity(v float64, omega float64) error {
+	v32, omega32 := float32(v), float32(omega)
+	if v32 > MaxV || omega32 > MaxOmega {
 		return errors.New("Invalid parameters")
 	}
-	state := State{V: v, Omega: omega}	
+	state := State{V: v32, Omega: omega32}	
 	c.channel <- state
 	return nil
 }
@@ -44,6 +46,8 @@ func (c *Commands) SetVelocity(v float32, omega float32) error {
 func (c *Commands)Loop() error {
 	buffer := make([]byte, txBufferSize)
 	fmt.Println("Started")
+	defer c.conn.Close()
+
 	for {
 		state := <- c.channel		
 		binary.Encode(buffer, binary.LittleEndian, state)	
@@ -52,11 +56,4 @@ func (c *Commands)Loop() error {
 			return err
 		}
 	}
-}
-
-func (c *Commands)Dispose() error {
-	if c.conn != nil {
-		return c.conn.Close()
-	}
-	return nil
 }

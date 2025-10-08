@@ -53,19 +53,23 @@ func (d *Telemetry) Setup(address string) error {
 func (d *Telemetry) Loop() error {
 	buffer := make([]byte, rxBufferSize)
 	telem := new(TelemPacket)
+	defer d.conn.Close()
+
 	for {
 		_, err := d.conn.Read(buffer[:headerSize])
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 
-		if err = d.unmarshallTelemetry(buffer[:headerSize], telem); err != nil {
+		if err = unmarshallTelemetry(buffer[:headerSize], telem); err != nil {
 			return err
 		}
 
 		dataSize := telem.Header.LidarDataSize * 4
 		_, err = d.conn.Read(buffer[:dataSize])
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 
@@ -74,19 +78,15 @@ func (d *Telemetry) Loop() error {
 	}
 }
 
-func (d *Telemetry) Dispose() error {
-	return d.conn.Close()
-}
-
 // Внимание! Блокируется, пока не получит пакет телеметрии
 func (d *Telemetry)Receive() *TelemPacket {
 	packet := <- d.channel
 	return &packet
 }
 
-func (d *Telemetry)unmarshallTelemetry(raw []byte, telem *TelemPacket) error {
+func unmarshallTelemetry(raw []byte, telem *TelemPacket) error {
 	reader := bytes.NewReader(raw)
-	binary.Read(reader, binary.LittleEndian, telem.Header)
+	binary.Read(reader, binary.LittleEndian, &telem.Header)
 	if telem.Header.Magic != magic {
 		return errors.New("Invalid magic")
 	}

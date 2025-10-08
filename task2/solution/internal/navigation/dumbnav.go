@@ -2,7 +2,7 @@ package navigation
 
 import (
 	"github.com/Dobefu/vectors"
-	"github.com/karetskiiVO/robotics/task2/solution/internal/telemetry"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"
 )
 
 type DumbNavigator struct {
@@ -12,7 +12,7 @@ type DumbNavigator struct {
 	heading float64
 }
 
-func (nav *DumbNavigator) Step(telem *telemetry.Telemetry) {
+func (nav *DumbNavigator) Step(telem *marshall.TelemPacket) {
 	nav.pos.X = float64(telem.Header.OdomX)
 	nav.pos.Y = float64(telem.Header.OdomY)
 

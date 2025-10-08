@@ -3,21 +3,21 @@ package navigation
 import (
 	"math"
 	"github.com/Dobefu/vectors"
-	"github.com/karetskiiVO/robotics/task2/solution/internal/movement"	
+	//"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"	
 )
 
-type State int
+type Maneuver int
 const (
 	_ = iota
-	stateDone State = 0
-	stateRotating State = 1
-	stateMoving State = 2
+	maneuverDone Maneuver = 0
+	maneuverTurning Maneuver = 1
+	maneuverLinear Maneuver = 2
 )
 
 type DumbCommander struct {
 	Nav Navigator
 	con movement.Controller
-	state State
+	state Maneuver
 	targetPosition vectors.Vector2
 	targetHeading float64
 }
@@ -39,26 +39,26 @@ func (com *DumbCommander) MoveTo(point vectors.Vector2) {
 	point.Sub(currentPos)
 	com.targetHeading = point.AngleRadians()
 
-	com.state = stateRotating
+	com.state = maneuverTurning
 }
 
 func (com *DumbCommander) Run() {
 	switch com.state {
-		case stateRotating: {
+		case maneuverTurning: {
 			if withinTolerance(com.Nav.Heading(), com.targetHeading, angleTolerance) {
-				com.state = stateMoving
+				com.state = maneuverLinear
 				com.con.SetState(float32(velocity), 0)
 			}
 		}
-		case stateMoving: {
+		case maneuverLinear: {
 			predPos := predictPosition(com.Nav.Position(), com.Nav.Velocity())
 			dist := distance(predPos, com.targetPosition)
 			if withinTolerance(dist, 0, distanceTolerance) {
-				com.state = stateDone
+				com.state = maneuverDone
 				com.con.SetState(0, 0)
 			}
 		}
-		case stateDone:
+		case maneuverDone:
 			return
 	}
 }
