@@ -2,26 +2,34 @@ package navigation
 
 import (
 	"fmt"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"
+	"gonum.org/v1/gonum/mat"
+	"log"
 	"os"
 	"sync"
-	"log"
-	"github.com/Dobefu/vectors"
-	"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"
 )
 
 var _ = fmt.Printf
 
 type Navigator interface {
-	Position() vectors.Vector2
-	Velocity() vectors.Vector2
-	AngularVelocity() vectors.Vector2
+	Position() *mat.VecDense
+	Velocity() *mat.VecDense
+	AngularVelocity() float64
 	Heading() float64
 	Step(*marshall.TelemPacket)
 }
 
 type Commander interface {
-	MoveTo(vectors.Vector2)
+	MoveTo(*mat.VecDense)
 	Step() (float64, float64)
+}
+
+type Predict interface {
+	Step(*marshall.TelemPacket)
+	PredictPosition(float64) *mat.VecDense
+	PredictVelocity(float64) *mat.VecDense
+	PredictHeading(float64) float64
+	PredictAngularVelocity(float64) float64
 }
 
 // Временное решение, чтобы скрыть реализацию бэкенда
@@ -41,7 +49,7 @@ func NavSetup(nav Navigator) {
 		telemHost := loadParam("TELEMETRY_HOST", "127.0.0.1")
 
 		telemHandle = new(marshall.Telemetry)
-		err := telemHandle.Setup(telemHost+":"+telemPort)
+		err := telemHandle.Setup(telemHost + ":" + telemPort)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -55,6 +63,13 @@ func NavSetup(nav Navigator) {
 func NavLoop() {
 	for {
 		telemData := telemHandle.Receive()
+		/*
+			Неправильный разделитель в принятых данных мы обработали раньше
+			(в telem.Loop()), так что если магия нулевая, то это метка для интерполяции
+		*/
+		if telemData.Header.Magic == 0 {
+			log.Println("Telem timeout")
+		}
 		navInstance.Step(telemData)
 	}
 }
@@ -65,7 +80,7 @@ func CmdSetup(cmd Commander) {
 		cmdHost := loadParam("CMD_LISTEN_HOST", "127.0.0.1")
 
 		ctrHandle = new(marshall.Commands)
-		err := ctrHandle.Setup(cmdHost+":"+cmdPort)
+		err := ctrHandle.Setup(cmdHost + ":" + cmdPort)
 		if err != nil {
 			log.Fatal(err)
 		}

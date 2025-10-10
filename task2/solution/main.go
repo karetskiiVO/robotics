@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/Dobefu/vectors"
+	"gonum.org/v1/gonum/mat"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/navfront"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/navigation"
 )
@@ -11,11 +11,11 @@ var _ = fmt.Printf
 var _ = navigation.CmdLoop
 
 func main() {
-	nav := new(navfront.DumbNavigator)
-	cmd := new(navfront.DumbCommander)
+	nav := navfront.NewDumbNavigator()
+	cmd := navfront.NewDumbCommander()
 	navigation.NavSetup(nav)
 	navigation.CmdSetup(cmd)
-	cmd.MoveTo(vectors.Vector2{X: 0, Y: 0.5})
+	cmd.MoveTo(mat.NewVecDense(2, []float64{2, 2}))
 	go navigation.NavLoop()
 	go cmd.Loop()
 

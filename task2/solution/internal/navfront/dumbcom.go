@@ -1,51 +1,57 @@
 package navfront
 
 import (
-	"math"
+	"gonum.org/v1/gonum/mat"
+	"github.com/karetskiiVO/robotics/task2/solution/internal/navigation"
 	"log"
-	"github.com/Dobefu/vectors"
-	"github.com/karetskiiVO/robotics/task2/solution/internal/navigation"	
+	"math"
 )
 
 type Maneuver int
+
 const (
-	_ = iota
-	maneuverDone Maneuver = 0
-	maneuverTurn Maneuver = 1
+	_                         = iota
+	maneuverDone     Maneuver = 0
+	maneuverTurn     Maneuver = 1
 	maneuverFullstop Maneuver = 2
-	maneuverLine Maneuver = 3
+	maneuverLine     Maneuver = 3
 )
 
 type DumbCommander struct {
-	state Maneuver
-	prevState Maneuver
-	targetPosition vectors.Vector2
-	targetHeading float64
-	channel chan State
+	state          Maneuver
+	prevState      Maneuver
+	targetPosition *mat.VecDense
+	targetHeading  float64
+	channel        chan State
 }
 
 type State struct {
-	V float64
+	V     float64
 	Omega float64
 }
 
-const angleTolerance float64 = 5e-2
-const distanceTolerance float64 = 1e-1
+const angleTolerance float64 = 1e-3
+const distanceTolerance float64 = 5e-2
 const omegaTolerance float64 = 1e-3
 
-const maxVelocity float64 = 0.5 * 2
-const maxOmega float64 = 1.0 * 2
+const maxVelocity float64 = 0.5 / 2
+const maxOmega float64 = 1.0 / 3
 const maxLinearAcc float64 = 0.05 * 2
 const maxAngularAcc float64 = 0.2 * 2
 
-func (com *DumbCommander) MoveTo(point vectors.Vector2) {
+func NewDumbCommander() *DumbCommander {
+	return new(DumbCommander)
+}
+
+func (com *DumbCommander) MoveTo(point *mat.VecDense) {
 	nav := navigation.NavInstance()
 	currentPos := nav.Position()
 	com.targetPosition = point
 	log.Printf("TargPos: %v\n", com.targetPosition)
 
-	point.Sub(currentPos)
-	com.targetHeading = point.AngleRadians()
+	log.Printf("%#v\n%#v\n", *point, *currentPos)
+	point.SubVec(point, currentPos)
+	com.targetHeading = angleRadians(point)
 	log.Printf("TargHeading: %f deg, deltaR: %v {m, m}\n", radToDeg(com.targetHeading), point)
 
 	com.setState(maneuverTurn)
@@ -55,22 +61,22 @@ func (com *DumbCommander) Loop() {
 	com.channel = make(chan State)
 	for {
 		switch com.state {
-			case maneuverTurn:
-				engageTurn(com.targetHeading, com.channel)
-				com.setState(maneuverFullstop)
-			case maneuverFullstop:
-				engageFullstop(com.channel)
-				if com.prevState == maneuverTurn {
-					com.setState(maneuverLine)
-				} else {
-					com.setState(maneuverDone)
-					log.Println("Movement done")
-				}
-			case maneuverLine:
-				engageLine(com.targetPosition, com.channel)
-				com.setState(maneuverFullstop)
-			case maneuverDone:
-				continue
+		case maneuverTurn:
+			engageTurn(com.targetHeading, com.channel)
+			com.setState(maneuverFullstop)
+		case maneuverFullstop:
+			engageFullstop(com.channel)
+			if com.prevState == maneuverTurn {
+				com.setState(maneuverLine)
+			} else {
+				com.setState(maneuverDone)
+				log.Println("Movement done")
+			}
+		case maneuverLine:
+			engageLine(com.targetPosition, com.channel)
+			com.setState(maneuverFullstop)
+		case maneuverDone:
+			continue
 		}
 	}
 }
@@ -84,7 +90,7 @@ func (com *DumbCommander) Step() (float64, float64) {
 	if com.channel == nil {
 		return 0, 0
 	}
-	state := <- com.channel	
+	state := <-com.channel
 	v, omega := state.V, state.Omega
 	return v, omega
 }
@@ -100,8 +106,7 @@ func engageTurn(targetHeading float64, channel chan State) {
 	channel <- State{0, omega}
 	log.Printf("Started maneuver Turn to theta=%f deg\n", radToDeg(targetHeading))
 	for {
-		predHeading := predictHeading(nav.Heading(), nav.AngularVelocity().Y)
-		log.Printf("%f\n", radToDeg(predHeading))
+		predHeading := predictHeading(nav.Heading(), nav.AngularVelocity())
 		if withinTolerance(predHeading, targetHeading, angleTolerance) {
 			break
 		}
@@ -113,15 +118,15 @@ func engageFullstop(channel chan State) {
 	nav := navigation.NavInstance()
 	channel <- State{0, 0}
 	log.Printf("Started maneuver Fullstop\n")
-	for {	
-		if withinTolerance(nav.AngularVelocity().Y, 0, omegaTolerance) {
+	for {
+		if withinTolerance(nav.AngularVelocity(), 0, omegaTolerance) {
 			break
 		}
 	}
 	log.Printf("Finished maneuver Fullstop at %f\n", radToDeg(nav.Heading()))
 }
 
-func engageLine(targetPosition vectors.Vector2, channel chan State) {
+func engageLine(targetPosition *mat.VecDense, channel chan State) {
 	nav := navigation.NavInstance()
 	channel <- State{maxVelocity, 0}
 	log.Printf("Started maneuver Line\n")
@@ -130,35 +135,43 @@ func engageLine(targetPosition vectors.Vector2, channel chan State) {
 		dist := distance(predPosition, targetPosition)
 		if withinTolerance(dist, 0, distanceTolerance) {
 			log.Printf("Finished maneuver Line at d=%f\n", dist)
-			break	
+			break
 		}
 	}
 }
 
-
-func withinTolerance(val float64, target float64, tol float64) bool {
-	return math.Abs(target - val) < tol
+func (com *DumbCommander) MovementDone() bool {
+	return com.state == maneuverDone
 }
 
-func distance(x vectors.Vector2, y vectors.Vector2) float64 {
-	y.Sub(x)
-	return y.Magnitude()
+func withinTolerance(val float64, target float64, tol float64) bool {
+	return math.Abs(target-val) < tol
+}
+
+func distance(x *mat.VecDense, y *mat.VecDense) float64 {
+	dist := mat.NewVecDense(2, nil)
+	dist.SubVec(y, x)
+	return dist.Norm(2)
 }
 
 func radToDeg(rad float64) float64 {
-	return rad * 180/math.Pi
+	return rad * 180 / math.Pi
 }
 
-func predictPosition(pos vectors.Vector2, vel vectors.Vector2) vectors.Vector2 {
-	displMagn := 3*vel.MagnitudeSquared() / (2*maxLinearAcc)
-	angle := vel.AngleRadians()
-	r := vectors.Vector2{
-		X: pos.X + displMagn*math.Sin(angle),
-		Y: pos.Y + displMagn*math.Cos(angle),
-	}
+func angleRadians(vec *mat.VecDense) float64 {
+	return math.Atan2(vec.AtVec(1), vec.AtVec(0))
+}
+
+func predictPosition(pos *mat.VecDense, vel *mat.VecDense) *mat.VecDense {
+	displMagn := 3 * math.Pow(vel.Norm(2), 2) / (2 * maxLinearAcc)
+	angle := angleRadians(vel)
+	r := mat.NewVecDense(2, []float64{
+		pos.AtVec(0) + displMagn*math.Sin(angle),
+		pos.AtVec(1) + displMagn*math.Cos(angle),
+	})
 	return r
 }
 
 func predictHeading(heading float64, omega float64) float64 {
-	return heading + 3*math.Pow(omega, 2) / (2*maxAngularAcc)
+	return heading + 3*math.Pow(omega, 2)/(2*maxAngularAcc)
 }

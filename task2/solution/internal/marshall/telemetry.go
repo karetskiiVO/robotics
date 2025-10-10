@@ -4,23 +4,24 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"net"
 	"log"
+	"net"
+	"time"
 )
 
 type TelemPacket struct {
 	Header struct {
-		Size uint32
-		Magic uint32
-		OdomX float32
-		OdomY float32
-		OdomTh float32
-		V float32
-		Vy float32
-		Vth float32
-		Wx float32
-		Wy float32
-		Wz float32
+		Size          uint32
+		Magic         uint32
+		OdomX         float32
+		OdomY         float32
+		OdomTh        float32
+		V             float32
+		Vy            float32
+		Vth           float32
+		Wx            float32
+		Wy            float32
+		Wz            float32
 		LidarDataSize uint32
 	}
 	LidarData []float32
@@ -29,10 +30,12 @@ type TelemPacket struct {
 const headerSize int = 12 * 8
 const rxBufferSize int = 2048
 const magic uint32 = 1196704343
+const timeout int64 = 20000000
 
 type Telemetry struct {
-	conn net.Conn
-	channel chan TelemPacket
+	conn         net.Conn
+	channel      chan TelemPacket
+	TelemTimeout bool
 }
 
 func (d *Telemetry) Setup(address string) error {
@@ -55,8 +58,24 @@ func (d *Telemetry) Loop() error {
 	defer d.conn.Close()
 
 	for {
+		/*
+			Мы хотим получать телеметрию хотя бы каждые 20 миллисекунд (50 Гц), так что
+			задаём таймаут.
+		*/
+		d.conn.SetReadDeadline(time.Now().Add(time.Duration(timeout)))
 		_, err := d.conn.Read(buffer[:headerSize])
 		if err != nil {
+			var netErr *net.OpError
+			if errors.As(err, &netErr) {
+				if netErr.Timeout() {
+					/*
+						Отправляем пустой пакет, чтобы потом подменить его интерполированным
+						в NavLoop. Это конечно костыль, но пока сойдёт
+					*/
+					d.channel <- *new(TelemPacket)
+					continue
+				}
+			}
 			log.Println(err)
 			return err
 		}
@@ -79,8 +98,8 @@ func (d *Telemetry) Loop() error {
 }
 
 // Внимание! Блокируется, пока не получит пакет телеметрии
-func (d *Telemetry)Receive() *TelemPacket {
-	packet := <- d.channel
+func (d *Telemetry) Receive() *TelemPacket {
+	packet := <-d.channel
 	return &packet
 }
 
