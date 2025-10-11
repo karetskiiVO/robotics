@@ -1,41 +1,34 @@
 package navfront
 
 import (
-	"gonum.org/v1/gonum/mat"
+	"gonum.org/v1/gonum/spatial/r2"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"
 	"math"
 )
 
 type DumbNavigator struct {
-	pos     *mat.VecDense
-	vel     *mat.VecDense
+	pos     r2.Vec
+	vel     r2.Vec
 	omega   float64
 	heading float64
 }
 
-func NewDumbNavigator() *DumbNavigator {
-	nav := new(DumbNavigator)
-	nav.pos = mat.NewVecDense(2, nil)
-	nav.vel = mat.NewVecDense(2, nil)
-	return nav
-}
-
 func (nav *DumbNavigator) Step(telem *marshall.TelemPacket) {
-	nav.pos.SetVec(0, float64(telem.Header.OdomX))
-	nav.pos.SetVec(1, float64(telem.Header.OdomY))
+	nav.pos.X = float64(telem.Header.OdomX)
+	nav.pos.Y = float64(telem.Header.OdomY)
 
 	nav.omega = float64(telem.Header.Wy)
 	nav.heading = float64(telem.Header.OdomTh)
 
-	nav.vel.SetVec(0, float64(telem.Header.V) * math.Sin(nav.Heading()))
-	nav.vel.SetVec(1, float64(telem.Header.V) * math.Cos(nav.Heading()))
+	nav.vel.X = float64(telem.Header.V) * math.Sin(nav.Heading())
+	nav.vel.Y = float64(telem.Header.V) * math.Cos(nav.Heading())
 }
 
-func (nav *DumbNavigator) Position() *mat.VecDense {
+func (nav *DumbNavigator) Position() r2.Vec {
 	return nav.pos
 }
 
-func (nav *DumbNavigator) Velocity() *mat.VecDense {
+func (nav *DumbNavigator) Velocity() r2.Vec {
 	return nav.vel
 }
 

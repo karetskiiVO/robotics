@@ -1,7 +1,7 @@
 package navfront
 
 import (
-	"gonum.org/v1/gonum/mat"
+	"gonum.org/v1/gonum/spatial/r2"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/navigation"
 	"log"
 	"math"
@@ -20,7 +20,7 @@ const (
 type DumbCommander struct {
 	state          Maneuver
 	prevState      Maneuver
-	targetPosition *mat.VecDense
+	targetPosition r2.Vec
 	targetHeading  float64
 	channel        chan State
 }
@@ -39,18 +39,13 @@ const maxOmega float64 = 1.0 / 3
 const maxLinearAcc float64 = 0.05 * 2
 const maxAngularAcc float64 = 0.2 * 2
 
-func NewDumbCommander() *DumbCommander {
-	return new(DumbCommander)
-}
-
-func (com *DumbCommander) MoveTo(point *mat.VecDense) {
+func (com *DumbCommander) MoveTo(point r2.Vec) {
 	nav := navigation.NavInstance()
 	currentPos := nav.Position()
 	com.targetPosition = point
 	log.Printf("TargPos: %v\n", com.targetPosition)
 
-	log.Printf("%#v\n%#v\n", *point, *currentPos)
-	point.SubVec(point, currentPos)
+	point = r2.Sub(point, currentPos)
 	com.targetHeading = angleRadians(point)
 	log.Printf("TargHeading: %f deg, deltaR: %v {m, m}\n", radToDeg(com.targetHeading), point)
 
@@ -126,7 +121,7 @@ func engageFullstop(channel chan State) {
 	log.Printf("Finished maneuver Fullstop at %f\n", radToDeg(nav.Heading()))
 }
 
-func engageLine(targetPosition *mat.VecDense, channel chan State) {
+func engageLine(targetPosition r2.Vec, channel chan State) {
 	nav := navigation.NavInstance()
 	channel <- State{maxVelocity, 0}
 	log.Printf("Started maneuver Line\n")
@@ -148,27 +143,26 @@ func withinTolerance(val float64, target float64, tol float64) bool {
 	return math.Abs(target-val) < tol
 }
 
-func distance(x *mat.VecDense, y *mat.VecDense) float64 {
-	dist := mat.NewVecDense(2, nil)
-	dist.SubVec(y, x)
-	return dist.Norm(2)
+func distance(x r2.Vec, y r2.Vec) float64 {
+	dist := r2.Sub(y, x)
+	return r2.Norm2(dist)
 }
 
 func radToDeg(rad float64) float64 {
 	return rad * 180 / math.Pi
 }
 
-func angleRadians(vec *mat.VecDense) float64 {
-	return math.Atan2(vec.AtVec(1), vec.AtVec(0))
+func angleRadians(vec r2.Vec) float64 {
+	return math.Atan2(vec.Y, vec.X)
 }
 
-func predictPosition(pos *mat.VecDense, vel *mat.VecDense) *mat.VecDense {
-	displMagn := 3 * math.Pow(vel.Norm(2), 2) / (2 * maxLinearAcc)
+func predictPosition(pos r2.Vec, vel r2.Vec) r2.Vec {
+	displMagn := 3 * math.Pow(r2.Norm2(vel), 2) / (2 * maxLinearAcc)
 	angle := angleRadians(vel)
-	r := mat.NewVecDense(2, []float64{
-		pos.AtVec(0) + displMagn*math.Sin(angle),
-		pos.AtVec(1) + displMagn*math.Cos(angle),
-	})
+	r := r2.Vec{
+		X: pos.X + displMagn*math.Sin(angle),
+		Y: pos.Y + displMagn*math.Cos(angle),
+	}
 	return r
 }
 

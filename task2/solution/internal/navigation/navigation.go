@@ -3,7 +3,7 @@ package navigation
 import (
 	"fmt"
 	"github.com/karetskiiVO/robotics/task2/solution/internal/marshall"
-	"gonum.org/v1/gonum/mat"
+	"gonum.org/v1/gonum/spatial/r2"
 	"log"
 	"os"
 	"sync"
@@ -12,22 +12,22 @@ import (
 var _ = fmt.Printf
 
 type Navigator interface {
-	Position() *mat.VecDense
-	Velocity() *mat.VecDense
+	Position() r2.Vec
+	Velocity() r2.Vec
 	AngularVelocity() float64
 	Heading() float64
 	Step(*marshall.TelemPacket)
 }
 
 type Commander interface {
-	MoveTo(*mat.VecDense)
+	MoveTo(r2.Vec)
 	Step() (float64, float64)
 }
 
-type Predict interface {
+type Predictor interface {
 	Step(*marshall.TelemPacket)
-	PredictPosition(float64) *mat.VecDense
-	PredictVelocity(float64) *mat.VecDense
+	PredictPosition(float64) r2.Vec
+	PredictVelocity(float64) r2.Vec
 	PredictHeading(float64) float64
 	PredictAngularVelocity(float64) float64
 }
@@ -42,8 +42,9 @@ var cmdOnce sync.Once
 
 var navInstance Navigator
 var cmdInstance Commander
+var predInstance Predictor
 
-func NavSetup(nav Navigator) {
+func NavSetup(nav Navigator, pred Predictor) {
 	navOnce.Do(func() {
 		telemPort := loadParam("TELEMETRY_PORT", "5600")
 		telemHost := loadParam("TELEMETRY_HOST", "127.0.0.1")
@@ -57,6 +58,7 @@ func NavSetup(nav Navigator) {
 		go telemHandle.Loop()
 		log.Println("Telemetry link up")
 		navInstance = nav
+		predInstance = pred
 	})
 }
 
@@ -68,9 +70,11 @@ func NavLoop() {
 			(в telem.Loop()), так что если магия нулевая, то это метка для интерполяции
 		*/
 		if telemData.Header.Magic == 0 {
-			log.Println("Telem timeout")
+			//log.Println("Telem timeout")
+				
 		}
 		navInstance.Step(telemData)
+		log.Printf("%.3f\t%.3f\n", telemData.Header.OdomTh, navInstance.Heading())
 	}
 }
 
